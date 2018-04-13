@@ -21,7 +21,7 @@
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-
+float xoffset,yoffset;
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
@@ -119,20 +119,20 @@ void drawControlPoint(mlBezier &mlbezier)
 }
 void drawBezierSurface(mlBezier &mlbezier)
 {
-    int n = 4;//number
+    int n = 5;//number
     float xarray[4];
     float yarray[4];
     float zarray[4];
-    GLfloat ps[11][4][3];
-    for (int v=0;v<4;v++){
+    GLfloat ps[11][5][3];
+    for (int v=0;v<5;v++){
         int u=0;
         for (double t=0.0;t<=1;t+=0.1){
             for (int i=1;i<n;++i){
                 for (int j=0;j<n-i;++j){
                     if (i==1){
-                        xarray[j]=mlbezier.controlPoints[j*4+v].x* (1 - t)+mlbezier.controlPoints[(j+1)*4+v].x* t;
-                        yarray[j]=mlbezier.controlPoints[j*4+v].y* (1 - t)+mlbezier.controlPoints[(j+1)*4+v].y* t;
-                        zarray[j]=mlbezier.controlPoints[j*4+v].z* (1 - t)+mlbezier.controlPoints[(j+1)*4+v].z* t;
+                        xarray[j]=mlbezier.controlPoints[j*5+v].x* (1 - t)+mlbezier.controlPoints[(j+1)*5+v].x* t;
+                        yarray[j]=mlbezier.controlPoints[j*5+v].y* (1 - t)+mlbezier.controlPoints[(j+1)*5+v].y* t;
+                        zarray[j]=mlbezier.controlPoints[j*5+v].z* (1 - t)+mlbezier.controlPoints[(j+1)*5+v].z* t;
                         continue;
                     }
                     xarray[j]=xarray[j]*(1-t)+xarray[j+1]*t;
@@ -178,11 +178,11 @@ void drawBezierSurface(mlBezier &mlbezier)
             u++;
         }
     }
-    glm::vec3 newcontrolpoints[16];
-    for (int i=0;i<3;i++)
+    glm::vec3 newcontrolpoints[25];
+    for (int i=0;i<5;i++)
     {
-        for (int j=0;j<3;j++){
-            newcontrolpoints[4*j+i]=mlbezier.controlPoints[4*i+j];
+        for (int j=0;j<4;j++){
+            newcontrolpoints[5*j+i]=mlbezier.controlPoints[5*i+j];
         }
     }
     
@@ -192,9 +192,9 @@ void drawBezierSurface(mlBezier &mlbezier)
             for (int i=1;i<n;++i){
                 for (int j=0;j<n-i;++j){
                     if (i==1){
-                        xarray[j]=newcontrolpoints[j*4+v].x* (1 - t)+newcontrolpoints[(j+1)*4+v].x* t;
-                        yarray[j]=newcontrolpoints[j*4+v].y* (1 - t)+newcontrolpoints[(j+1)*4+v].y* t;
-                        zarray[j]=newcontrolpoints[j*4+v].z* (1 - t)+newcontrolpoints[(j+1)*4+v].z* t;
+                        xarray[j]=newcontrolpoints[j*5+v].x* (1 - t)+newcontrolpoints[(j+1)*5+v].x* t;
+                        yarray[j]=newcontrolpoints[j*5+v].y* (1 - t)+newcontrolpoints[(j+1)*5+v].y* t;
+                        zarray[j]=newcontrolpoints[j*5+v].z* (1 - t)+newcontrolpoints[(j+1)*5+v].z* t;
                         continue;
                     }
                     xarray[j]=xarray[j]*(1-t)+xarray[j+1]*t;
@@ -240,7 +240,7 @@ void drawBezierSurface(mlBezier &mlbezier)
     glm::vec3 finalnormal[11][11];
     for (int i=0;i<11;i++){
         for (int j=0;j<11;j++){
-            finalnormal[i][j]=glm::normalize(glm::cross(normal[i][j],normal2[i][j]));
+            finalnormal[i][j]=glm::normalize(glm::cross(normal[i][j],normal2[j][i]));
         }
     }
     glPushMatrix();
@@ -258,13 +258,13 @@ void drawBezierSurface(mlBezier &mlbezier)
             // 先算出外心
             // 点到点距离函数调用
             GLfloat distance;
-            distance=distance3d(centerpoint[0],centerpoint[1],centerpoint[2],ps1[y+1][x][0],ps1[y+1][x][1],ps1[y+1][x][2]);
+            distance=distance3d(centerpoint[0],centerpoint[1],centerpoint[2],ps1[y][x][0],ps1[y][x][1],ps1[y][x][2]);
             
             GLfloat diffe;
-            diffe=(ps1[y+1][x][0]-centerpoint[0])*(ps1[y+1][x][0]-centerpoint[0])+(ps1[y+1][x][1]-centerpoint[1])*(ps1[y+1][x][1]-centerpoint[1])+(ps1[y+1][x][1]-centerpoint[2])*(ps1[y+1][x][1]-centerpoint[2])-pow(distance,2);
+            diffe=(ps1[y+1][x][0]-centerpoint[0])*(ps1[y+1][x][0]-centerpoint[0])+(ps1[y+1][x][1]-centerpoint[1])*(ps1[y+1][x][1]-centerpoint[1])+(ps1[y+1][x][2]-centerpoint[2])*(ps1[y+1][x][2]-centerpoint[2])-(distance*distance);
 //            std::cout<<diffe<<std::endl;
             
-            if (diffe>=0){
+            if (diffe<=0){
                 glBegin(GL_TRIANGLES);
                 glNormal3f(finalnormal[y][x].x,finalnormal[y][x].y,finalnormal[y][x].z);
                 glTexCoord2f(1-(x)/10.0,1-(y)/10.0);
@@ -417,7 +417,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glewExperimental = GL_TRUE;
     glewInit();
-    
+    glfwSetCursorPosCallback(window, mouse_callback);
     
     
     //mlBezier mlbezier;
@@ -427,7 +427,7 @@ int main()
     
     initPMV();
      glEnable(GL_DEPTH_TEST);
-    
+    glm::vec3 record;
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = glfwGetTime();
@@ -437,7 +437,7 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
         
-        GLfloat sun_light_position[] = { 0.0f, 6.0f, 0.0f, 0.0f };
+        GLfloat sun_light_position[] = { 0.0f, 0.0f, -10.0f, 0.0f };
         GLfloat sun_light_ambient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
         GLfloat sun_light_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         GLfloat sun_light_specular[] = { 1.0f, 1.0f, 0.0f, 1.0f };
@@ -445,8 +445,8 @@ int main()
         glLightfv(GL_LIGHT0, GL_AMBIENT, sun_light_ambient);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, sun_light_diffuse);
         glLightfv(GL_LIGHT0, GL_SPECULAR, sun_light_specular);
-//        glEnable(GL_LIGHTING);
-//        glEnable(GL_LIGHT0);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
         GLfloat earth_mat_ambient[] = { 0.0f, 0.0f, 1.0f, 1.0f };
         GLfloat earth_mat_diffuse[] = { 0.0f, 0.0f, 0.5f, 1.0f };
         GLfloat earth_mat_specular[] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -461,10 +461,60 @@ int main()
         
         //texture start
         unsigned int texture = 0;
-        initTexture(texture);
-//        int width, heigh
+//        initTexture(texture);
+//        int width, heigh;
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         drawControlPoint(mlbezier);
+        GLint   viewport[4];
+        GLdouble modelview[16];
+        GLdouble projection[16];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        viewport[2]=800;
+        viewport[3]=600;
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+        double winX = 800-lastX;
+        double winY = 600-lastY;
+        GLdouble posX, posY, posZ,posX1,posY1,posZ1;
+
+        bool bResult = gluUnProject(winX, winY, 0.0, modelview, projection, viewport, &posX, &posY, &posZ);
+        GLfloat nearPoint[3];
+        nearPoint[0] = posX; nearPoint[1] = posY; nearPoint[2] = posZ;
+
+        bResult = gluUnProject(winX, winY, 1.0, modelview, projection, viewport, &posX, &posY, &posZ);
+        GLfloat farPoint[3];
+        farPoint[0] = posX; farPoint[1] = posY; farPoint[2] = posZ;
+        glm::vec3 direPoint,sdirePoint;
+        
+        direPoint=glm::vec3(nearPoint[0],nearPoint[1],nearPoint[2]+7.5);
+        
+//        for (int i=0;i<16;i++){
+//        sdirePoint=glm::vec3(mlbezier.controlPoints[i].x,mlbezier.controlPoints[i].y,mlbezier.controlPoints[i].z+7.5);
+//            GLfloat answer;
+//
+//            answer=(glm::length(glm::cross(sdirePoint,direPoint)))/(glm::length(direPoint));
+//
+//            std::cout<<xoffset+lastX<<","<<lastY-yoffset<<std::endl;
+//            bool cResult = gluUnProject(xoffset+lastX, lastY-yoffset, 1.0, modelview, projection, viewport, &posX, &posY, &posZ);
+//            bool dResult = gluUnProject(winX, winY, 1.0, modelview, projection, viewport, &posX1, &posY1, &posZ1);
+//            std::cout<<posX-posX1<<","<<posY-posY1<<","<<posZ-posZ1<<std::endl;
+//            int choice;
+//            if (1){
+//                choice=i;
+//                mlbezier.controlPoints[0].x+=(posX-posX1)*0.0001;
+//                mlbezier.controlPoints[0].y+=(posY-posY1)*0.0001;
+//                mlbezier.controlPoints[0].z+=(posZ-posZ1)*0.0001;
+//                if (answer<0.4)
+//                std::cout<<i<<"laile:"<<answer<<std::endl;
+//            }
+////            mlbezier.controlPoints[i].x+=posX*0.01;
+////            mlbezier.controlPoints[i].y+=posY*0.01;
+////            mlbezier.controlPoints[i].z+=posZ*0.01;
+////            } std::cout<<"laile:"<<(glm::length(glm::cross(sdirePoint,direPoint)))<<" ,"<<answer<<","<<(glm::length(direPoint))<<std::endl;
+//        }
+//        std::cout<<nearPoint[0]<<","<<nearPoint[1]<<","<<nearPoint[2]<<std::endl;
+//         std::cout<<farPoint[0]<<","<<farPoint[1]<<","<<farPoint[2]<<std::endl;
+//      for ()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindTexture(GL_TEXTURE_2D, texture);
         drawBezierSurface(mlbezier);
@@ -546,19 +596,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-    
-    float xoffset = xpos - lastX;
-    float yoffset =
+//    if (firstMouse)
+//    {
+//        lastX = xpos;
+//        lastY = ypos;
+//        firstMouse = false;
+//    }
+    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT )){
+        xoffset = xpos - lastX;
+        yoffset =
     lastY - ypos;  // reversed since y-coordinates go from bottom to top
     
     lastX = xpos;
     lastY = ypos;
+    }
     
 //    camera.ProcessMouseMovement(xoffset, yoffset);
 }

@@ -6,7 +6,7 @@
 #include <memory>
 
 #define MOUSE_SELECT_SENSITIVENESS 5e-2
-constexpr  uint32_t controlPointsNums = 16;
+constexpr  uint32_t controlPointsNums = 25;
 class mlBezier
 {
 public:
@@ -41,25 +41,35 @@ public:
 	glm::vec3 controlPoints[controlPointsNums]
 		=
 	{
-		{ -2.0, -2.0,  1.0 },
-		{ -0.5, -2.0,  0.0 },
-		{ 0.5, -2.0, -2.0 },
-		{ 2.0, -2.0,  2.0 },
-
-		{ -2.0, -0.5,  2.0 },
-		{ -0.5, -0.5,  1.5 },
-		{ 0.5, -0.5,  0.0 },
-		{ 2.0, -0.5, -2.0 },
-
-		{ -2.0,  0.5,  2.0 },
-		{ -0.5,  0.5,  1.0 },
-		{ 0.5,  0.5, -1.0 },
-		{ 2.0,  0.5,  1.0 },
-
-		{ -2.0,  2.0, -1.0 },
-		{ -0.5,  2.0, -1.0 },
-		{ 0.5,  2.0,  0.0 },
-		{ 2.0,  2.0, -0.5 }
+        { -2.0, -2.0,  1.0 },
+        { -0.5, -2.0,  0.0 },
+        { 0.5, -2.0, -2.0 },
+        { 2.0, -2.0,  2.0 },
+        { 2.5, -3.0,  -2.0},
+        
+        { -2.0, -0.5,  2.0 },
+        { -0.5, -0.5,  1.5 },
+        { 0.5, -0.5,  0.0 },
+        { 2.0, -0.5, -2.0 },
+        { 2.5, -1.0, -3.0},
+        
+        { -2.0,  0.5,  2.0 },
+        { -0.5,  0.5,  1.0 },
+        { 0.5,  0.5, -1.0 },
+        { 2.0,  0.5,  1.0 },
+        { 2.5, 0.5, -2.0},
+        
+        { -2.0,  2.0, -1.0 },
+        { -0.5,  2.0, -1.0 },
+        { 0.5,  2.0,  0.0 },
+        { 2.0,  2.0, -0.5 },
+        { 2.5, 2.0, -1.0},
+        
+        {-2.0, 3.0, 1.0},
+        {-0.5, 3.0, 0.0},
+        {1.0, 3.0, -1.0},
+        {1.5, 3.0, -1.5},
+        {2.5, 3.0, -1.0}
 
 	};
 };
@@ -104,16 +114,16 @@ void mlBezier::mlCreateBeizermesh()
 
 void mlBezier::mlTriangularization()
 {
-	for (int j = 0; j < 3; j++)
+	for (int j = 0; j < 4; j++)
 	{
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 4; i++)
 		{
-			int ind = j * 4 + i;
+			int ind = j * 5 + i;
 			indicesofControlpoints.push_back(ind);
 			indicesofControlpoints.push_back(ind + 1);
 
+			indicesofControlpoints.push_back(ind + 6);
 			indicesofControlpoints.push_back(ind + 5);
-			indicesofControlpoints.push_back(ind + 4);
             std::cout<<ind<<" ";
 		}
         std::cout<<std::endl;
